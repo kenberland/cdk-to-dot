@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+"""Render network.dot with a selectable color theme."""
+
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
+
+# ── Cloud SVG template ────────────────────────────────────────
+CLOUD_SVG = """\
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">
+  <path d="
+    M 25 65
+    C 10 65, 5 50, 15 42
+    C 5 35, 10 20, 25 20
+    C 30 8, 50 2, 62 10
+    C 70 3, 88 3, 95 15
+    C 112 15, 118 30, 108 42
+    C 118 52, 112 65, 95 65
+    Z"
+    fill="none"
+    stroke="{cloud_stroke}"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+</svg>
+"""
+
+# ── Themes ────────────────────────────────────────────────────
+THEMES = {
+    "dark": {
+        "BG":              "#1e1e2e",
+        "FG":              "#cdd6f4",
+        "MUTED":           "#6c7086",
+        "SUBTLE":          "#a6adc8",
+        "BORDER":          "#45475a",
+        "EDGE":            "#585b70",
+        "CLUSTER_FILL":    "#1e1e2e",
+        "SUBNET_FILL":     "#181825",
+        "BLUE":            "#89b4fa",
+        "BLUE_ALT":        "#74c7ec",
+        "NODE_BLUE_FILL":  "#1e2030",
+        "BLUE_ALT_FILL":   "#1e2030",
+        "GREEN":           "#a6e3a1",
+        "GREEN_ALT":       "#94e2d5",
+        "GREEN_FILL":      "#1e2e24",
+        "NODE_GREEN_FILL": "#1e2e24",
+        "FIREWALL":        "#f38ba8",
+        "FIREWALL_FILL":   "#2e1e1e",
+        "cloud_stroke":    "#fab387",
+    },
+    "print": {
+        "BG":              "white",
+        "FG":              "black",
+        "MUTED":           "#888888",
+        "SUBTLE":          "#555555",
+        "BORDER":          "black",
+        "EDGE":            "black",
+        "CLUSTER_FILL":    "white",
+        "SUBNET_FILL":     "#f0f0f0",
+        "BLUE":            "black",
+        "BLUE_ALT":        "black",
+        "NODE_BLUE_FILL":  "white",
+        "BLUE_ALT_FILL":   "white",
+        "GREEN":           "black",
+        "GREEN_ALT":       "black",
+        "GREEN_FILL":      "white",
+        "NODE_GREEN_FILL": "white",
+        "FIREWALL":        "black",
+        "FIREWALL_FILL":   "white",
+        "cloud_stroke":    "black",
+    },
+}
+
+
+def apply_theme(template: str, theme: dict) -> str:
+    """Replace color placeholders with theme values."""
+    result = template
+    # Sort by length descending so e.g. NODE_BLUE_FILL replaces before BLUE
+    for key in sorted(theme, key=len, reverse=True):
+        if key == "cloud_stroke":
+            continue
+        result = result.replace(f'"{key}"', f'"{theme[key]}"')
+        result = result.replace(f'={key}"', f'={theme[key]}"')
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Render network diagram")
+    parser.add_argument(
+        "-t", "--theme",
+        choices=list(THEMES),
+        default="print",
+        help="color theme (default: print)",
+    )
+    parser.add_argument(
+        "-o", "--output",
+        help="output file (default: network.svg)",
+    )
+    parser.add_argument(
+        "--no-cdk",
+        action="store_true",
+        help="skip regenerating network.dot from CDK",
+    )
+    args = parser.parse_args()
+
+    if not args.no_cdk:
+        print("Generating network.dot from CDK...")
+        gen = subprocess.run(
+            ["npm", "run", "--silent", "diagram"],
+            cwd=PROJECT_DIR,
+            capture_output=True, text=True,
+        )
+        if gen.stdout:
+            print(gen.stdout, end="")
+        if gen.stderr:
+            print(gen.stderr, file=sys.stderr, end="")
+        if gen.returncode != 0:
+            print("Error: CDK diagram generation failed.", file=sys.stderr)
+            sys.exit(gen.returncode)
+
+    if shutil.which("dot") is None:
+        print("Error: graphviz is not installed.", file=sys.stderr)
+        print("  sudo apt install graphviz    # Debian/Ubuntu", file=sys.stderr)
+        print("  brew install graphviz         # macOS", file=sys.stderr)
+        sys.exit(1)
+
+    theme = THEMES[args.theme]
+    out_file = args.output or os.path.join(PROJECT_DIR, "network.svg")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        # Write themed cloud SVG
+        cloud_path = os.path.join(tmp, "cloud.svg")
+        with open(cloud_path, "w") as f:
+            f.write(CLOUD_SVG.format(cloud_stroke=theme["cloud_stroke"]))
+
+        # Read and theme the dot source
+        dot_path = os.path.join(PROJECT_DIR, "network.dot")
+        with open(dot_path) as f:
+            dot_src = f.read()
+
+        dot_src = dot_src.replace('"CLOUD_IMAGE"', f'"{cloud_path}"')
+        dot_src = apply_theme(dot_src, theme)
+
+        themed_dot = os.path.join(tmp, "network.dot")
+        with open(themed_dot, "w") as f:
+            f.write(dot_src)
+
+        result = subprocess.run(
+            ["dot", "-Tsvg", themed_dot, "-o", out_file],
+            capture_output=True, text=True,
+        )
+        if result.stderr:
+            print(result.stderr, file=sys.stderr, end="")
+        if result.returncode != 0:
+            sys.exit(result.returncode)
+
+        # Graphviz SVG output references the cloud image by path.
+        # Inline it as a data URI so the output is self-contained.
+        import base64
+        with open(cloud_path) as f:
+            cloud_data = f.read()
+        data_uri = "data:image/svg+xml;base64," + base64.b64encode(cloud_data.encode()).decode()
+        with open(out_file) as f:
+            svg_out = f.read()
+        svg_out = svg_out.replace(cloud_path, data_uri)
+        with open(out_file, "w") as f:
+            f.write(svg_out)
+
+    print(f"Rendered ({args.theme}) → {out_file}")
+
+
+if __name__ == "__main__":
+    main()

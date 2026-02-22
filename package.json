@@ -1,0 +1,17 @@
+{
+  "name": "network-diagram-cdk",
+  "version": "1.0.0",
+  "scripts": {
+    "diagram": "ts-node bin/generate-diagram.ts",
+    "render": "bin/render"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^22.0.0"
+  }
+}
