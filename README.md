@@ -1,5 +1,7 @@
 # Network Diagram
 
+![Network Architecture](network.svg)
+
 AWS network architecture diagram generated from CDK construct definitions.
 
 The CDK stack in `lib/network-stack.ts` is the single source of truth. A
