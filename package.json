@@ -4,7 +4,7 @@
   "scripts": {
     "diagram": "ts-node bin/generate-diagram.ts",
     "render": "bin/render",
-    "test": "jest"
+    "test": "jest --forceExit"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.170.0",

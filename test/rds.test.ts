@@ -99,6 +99,44 @@ describe('RDS in generateDot', () => {
     expect(dot).toContain('shape=cylinder');
   });
 
+  it('renders a DatabaseInstanceReadReplica as a cylinder node', () => {
+    const { stack, vpc } = makeVpcStack();
+
+    const az = new SubnetGroup(vpc, 'AzA', {
+      label: 'Subnet 10.0.0.0/24',
+      subtitle: '254 hosts',
+    });
+
+    const primary = new rds.DatabaseInstance(az, 'DbPrimary', {
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_15,
+      }),
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+    });
+    primary.node.addMetadata('diagram:label', 'DB Primary');
+
+    const azB = new SubnetGroup(vpc, 'AzB', {
+      label: 'Subnet 10.0.1.0/24',
+      subtitle: '254 hosts',
+    });
+
+    const replica = new rds.DatabaseInstanceReadReplica(azB, 'DbReplica', {
+      sourceDatabaseInstance: primary,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+    });
+    replica.node.addMetadata('diagram:label', 'DB Replica');
+
+    const dot = generateDot(stack);
+    expect(dot).toContain('db_primary [');
+    expect(dot).toContain('db_replica [');
+    expect(dot).toContain('shape=cylinder');
+    expect(dot).toContain('DB Replica');
+  });
+
   it('includes RDS instances in edge routing', () => {
     const { stack, vpc } = makeVpcStack();
 

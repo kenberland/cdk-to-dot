@@ -10,6 +10,7 @@ import {
   addConnections,
 } from './external';
 import { subnetMeta } from './cidr';
+import { Database } from './database';
 
 export class NetworkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -151,13 +152,6 @@ export class NetworkStack extends Stack {
       description: 'ElastiCache node',
     });
 
-    const databasePrimary = new Service(azA, 'DatabasePrimary', {
-      label: 'Database (primary)',
-      ip: '10.0.0.50',
-      description: 'PostgreSQL RDS',
-      shape: 'cylinder',
-    });
-
     const azBMeta = subnetMeta(VPC_A_AZ_B_CIDR);
     const azB = new SubnetGroup(vpcA, 'AzB', {
       label: `${azBMeta.label} (us-east-1b)`,
@@ -182,11 +176,12 @@ export class NetworkStack extends Stack {
       description: 'ElastiCache node',
     });
 
-    const databaseStandby = new Service(azB, 'DatabaseStandby', {
-      label: 'Database (standby)',
-      ip: '10.0.1.50',
-      description: 'PostgreSQL RDS',
-      shape: 'cylinder',
+    // ── Database (RDS PostgreSQL) ────────────────────────────
+
+    const database = new Database(this, 'Database', {
+      vpc: vpcA,
+      primaryScope: azA,
+      standbyScope: azB,
     });
 
     // ── VPC-B Services ───────────────────────────────────────
@@ -264,9 +259,7 @@ export class NetworkStack extends Stack {
       { target: 'RedisB', label: 'cache r/w', color: 'EDGE' },
     ]);
 
-    addConnections(databasePrimary, [
-      { target: 'DatabaseStandby', label: 'sync replication', style: 'dashed', color: 'EDGE' },
-    ]);
+
 
     addConnections(vpcB, [
       { target: 'NatB', label: 'egress via NAT', style: 'dashed', color: 'GREEN', fontcolor: 'GREEN' },

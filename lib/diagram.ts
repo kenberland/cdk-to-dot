@@ -47,9 +47,9 @@ export function generateDot(stack: Stack): string {
   // All services in a VPC (vpcId → Service[]), used for edge section filtering
   const vpcAllServices = new Map<string, Service[]>();
   // RDS instances grouped by their nearest SubnetGroup or VPC
-  const groupedDatabases = new Map<string, rds.DatabaseInstance[]>();
+  const groupedDatabases = new Map<string, rds.DatabaseInstanceBase[]>();
   // All RDS instances in a VPC (for edge filtering)
-  const vpcAllDatabases = new Map<string, rds.DatabaseInstance[]>();
+  const vpcAllDatabases = new Map<string, rds.DatabaseInstanceBase[]>();
   const allConnections: { sourceId: string; conn: Connection }[] = [];
 
   for (const child of stack.node.findAll(ConstructOrder.PREORDER)) {
@@ -74,7 +74,7 @@ export function generateDot(stack: Stack): string {
         if (!vpcSubnetGroups.has(key)) vpcSubnetGroups.set(key, []);
         vpcSubnetGroups.get(key)!.push(child);
       }
-    } else if (child instanceof rds.DatabaseInstance) {
+    } else if (child instanceof rds.DatabaseInstanceBase) {
       // Find nearest SubnetGroup or VPC ancestor
       let parent: Construct | undefined = child.node.scope as Construct;
       while (parent && !(parent instanceof SubnetGroup) && !(parent instanceof ec2.Vpc)) {
@@ -332,7 +332,7 @@ export function generateDot(stack: Stack): string {
   }
 
   /** Emit RDS database nodes at the given indent level. Always rendered as cylinders. */
-  function emitDatabases(databases: rds.DatabaseInstance[], scheme: typeof COLOR_SCHEMES['BLUE'], indent: string) {
+  function emitDatabases(databases: rds.DatabaseInstanceBase[], scheme: typeof COLOR_SCHEMES['BLUE'], indent: string) {
     for (const db of databases) {
       const dbId = toNodeId(db.node.id);
       const dbLabel = getMeta(db, 'diagram:label') || db.node.id;
@@ -363,7 +363,7 @@ export function generateDot(stack: Stack): string {
   /** Emit a subnet subgraph with label, subtitle, service nodes, and database nodes. */
   function emitSubnetCluster(
     clusterId: string, subLabel: string, subSubtitle: string,
-    services: Service[], databases: rds.DatabaseInstance[],
+    services: Service[], databases: rds.DatabaseInstanceBase[],
     scheme: typeof COLOR_SCHEMES['BLUE'], indent: string,
   ) {
     lines.push(`${indent}subgraph ${clusterId} {`);
