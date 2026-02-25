@@ -1,5 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as rds from 'aws-cdk-lib/aws-rds';
 import { Construct, ConstructOrder } from 'constructs';
 import {
   Service,
@@ -45,6 +46,10 @@ export function generateDot(stack: Stack): string {
   const groupedServices = new Map<string, Service[]>();
   // All services in a VPC (vpcId → Service[]), used for edge section filtering
   const vpcAllServices = new Map<string, Service[]>();
+  // RDS instances grouped by their nearest SubnetGroup or VPC
+  const groupedDatabases = new Map<string, rds.DatabaseInstance[]>();
+  // All RDS instances in a VPC (for edge filtering)
+  const vpcAllDatabases = new Map<string, rds.DatabaseInstance[]>();
   const allConnections: { sourceId: string; conn: Connection }[] = [];
 
   for (const child of stack.node.findAll(ConstructOrder.PREORDER)) {
@@ -68,6 +73,27 @@ export function generateDot(stack: Stack): string {
         const key = parent.node.id;
         if (!vpcSubnetGroups.has(key)) vpcSubnetGroups.set(key, []);
         vpcSubnetGroups.get(key)!.push(child);
+      }
+    } else if (child instanceof rds.DatabaseInstance) {
+      // Find nearest SubnetGroup or VPC ancestor
+      let parent: Construct | undefined = child.node.scope as Construct;
+      while (parent && !(parent instanceof SubnetGroup) && !(parent instanceof ec2.Vpc)) {
+        parent = parent.node.scope as Construct | undefined;
+      }
+      if (parent) {
+        const key = parent.node.id;
+        if (!groupedDatabases.has(key)) groupedDatabases.set(key, []);
+        groupedDatabases.get(key)!.push(child);
+      }
+      // Also track by VPC for edge filtering
+      let vpc: Construct | undefined = child.node.scope as Construct;
+      while (vpc && !(vpc instanceof ec2.Vpc)) {
+        vpc = vpc.node.scope as Construct | undefined;
+      }
+      if (vpc) {
+        const vpcKey = vpc.node.id;
+        if (!vpcAllDatabases.has(vpcKey)) vpcAllDatabases.set(vpcKey, []);
+        vpcAllDatabases.get(vpcKey)!.push(child);
       }
     } else if (child instanceof Service) {
       // Find nearest SubnetGroup or VPC ancestor
@@ -305,10 +331,40 @@ export function generateDot(stack: Stack): string {
     }
   }
 
-  /** Emit a subnet subgraph with label, subtitle, and service nodes. */
+  /** Emit RDS database nodes at the given indent level. Always rendered as cylinders. */
+  function emitDatabases(databases: rds.DatabaseInstance[], scheme: typeof COLOR_SCHEMES['BLUE'], indent: string) {
+    for (const db of databases) {
+      const dbId = toNodeId(db.node.id);
+      const dbLabel = getMeta(db, 'diagram:label') || db.node.id;
+      const dbIp = getMeta(db, 'diagram:ip') || '';
+      const dbDesc = getMeta(db, 'diagram:description') || '';
+
+      lines.push('');
+      lines.push(`${indent}${dbId} [`);
+      lines.push(`${indent}    label=<`);
+      lines.push(`${indent}        <TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">`);
+      lines.push(`${indent}            <TR><TD><B>${dbLabel}</B></TD></TR>`);
+      if (dbIp) {
+        lines.push(`${indent}            <TR><TD><FONT POINT-SIZE="8" COLOR="SUBTLE">${dbIp}</FONT></TD></TR>`);
+      }
+      if (dbDesc) {
+        lines.push(`${indent}            <TR><TD><FONT POINT-SIZE="7" COLOR="MUTED">${dbDesc}</FONT></TD></TR>`);
+      }
+      lines.push(`${indent}        </TABLE>`);
+      lines.push(`${indent}    >`);
+      lines.push(`${indent}    shape=cylinder`);
+      lines.push(`${indent}    style="filled"`);
+      lines.push(`${indent}    fillcolor="${scheme.nodeFill}"`);
+      lines.push(`${indent}    color="${scheme.main}"`);
+      lines.push(`${indent}]`);
+    }
+  }
+
+  /** Emit a subnet subgraph with label, subtitle, service nodes, and database nodes. */
   function emitSubnetCluster(
     clusterId: string, subLabel: string, subSubtitle: string,
-    services: Service[], scheme: typeof COLOR_SCHEMES['BLUE'], indent: string,
+    services: Service[], databases: rds.DatabaseInstance[],
+    scheme: typeof COLOR_SCHEMES['BLUE'], indent: string,
   ) {
     lines.push(`${indent}subgraph ${clusterId} {`);
     lines.push(`${indent}    label=<`);
@@ -321,6 +377,7 @@ export function generateDot(stack: Stack): string {
     lines.push(`${indent}    color="${scheme.alt}"`);
     lines.push(`${indent}    fillcolor="SUBNET_FILL"`);
     emitServices(services, scheme, indent + '    ');
+    emitDatabases(databases, scheme, indent + '    ');
     lines.push(`${indent}}`);
   }
 
@@ -358,6 +415,8 @@ export function generateDot(stack: Stack): string {
       // VPC-level services (not inside any SubnetGroup — e.g. ELB, Multi-AZ DB)
       const vpcLevelServices = groupedServices.get(vpcId) || [];
       emitServices(vpcLevelServices, scheme, '        ');
+      const vpcLevelDatabases = groupedDatabases.get(vpcId) || [];
+      emitDatabases(vpcLevelDatabases, scheme, '        ');
 
       // Subnet clusters (one per SubnetGroup / AZ)
       for (const sg of subnetGroups) {
@@ -365,7 +424,8 @@ export function generateDot(stack: Stack): string {
         const sgSubtitle = getMeta(sg, 'diagram:subtitle') || '';
         const sgClusterId = `cluster_${toNodeId(sg.node.id)}`;
         const services = groupedServices.get(sg.node.id) || [];
-        emitSubnetCluster(sgClusterId, sgLabel, sgSubtitle, services, scheme, '        ');
+        const databases = groupedDatabases.get(sg.node.id) || [];
+        emitSubnetCluster(sgClusterId, sgLabel, sgSubtitle, services, databases, scheme, '        ');
         lines.push('');
       }
     } else {
@@ -374,7 +434,8 @@ export function generateDot(stack: Stack): string {
       const subnetSubtitle = getMeta(vpc, 'diagram:subnet-subtitle') || '';
       const subnetClusterId = `cluster_subnet_${toNodeId(vpcId).replace('vpc_', '')}`;
       const services = groupedServices.get(vpcId) || [];
-      emitSubnetCluster(subnetClusterId, subnetLabel, subnetSubtitle, services, scheme, '        ');
+      const databases = groupedDatabases.get(vpcId) || [];
+      emitSubnetCluster(subnetClusterId, subnetLabel, subnetSubtitle, services, databases, scheme, '        ');
     }
 
     lines.push('    }');
@@ -435,14 +496,20 @@ export function generateDot(stack: Stack): string {
     {
       comment: 'Edges: Internal VPC-A flows',
       filter: e => {
-        const ids = new Set((vpcAllServices.get('VpcA') || []).map(s => s.node.id));
+        const ids = new Set([
+          ...(vpcAllServices.get('VpcA') || []).map(s => s.node.id),
+          ...(vpcAllDatabases.get('VpcA') || []).map(d => d.node.id),
+        ]);
         return ids.has(e.src);
       },
     },
     {
       comment: 'Edges: Internal VPC-B flows',
       filter: e => {
-        const ids = new Set((vpcAllServices.get('VpcB') || []).map(s => s.node.id));
+        const ids = new Set([
+          ...(vpcAllServices.get('VpcB') || []).map(s => s.node.id),
+          ...(vpcAllDatabases.get('VpcB') || []).map(d => d.node.id),
+        ]);
         return ids.has(e.src);
       },
     },
