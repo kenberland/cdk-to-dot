@@ -20,7 +20,7 @@
 <text text-anchor="start" x="80" y="-240.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Engine</text>
 <text text-anchor="start" x="122" y="-240.6" font-family="Helvetica,sans-Serif" font-size="8.00">postgres</text>
 <text text-anchor="start" x="80" y="-225.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Instance</text>
-<text text-anchor="start" x="122" y="-225.6" font-family="Helvetica,sans-Serif" font-size="8.00">${Token[TOKEN.353]}</text>
+<text text-anchor="start" x="122" y="-225.6" font-family="Helvetica,sans-Serif" font-size="8.00">${Token[TOKEN.374]}</text>
 <text text-anchor="start" x="80" y="-210.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Storage</text>
 <text text-anchor="start" x="122" y="-210.6" font-family="Helvetica,sans-Serif" font-size="8.00">20 GB</text>
 <text text-anchor="start" x="80" y="-195.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Multi&#45;AZ</text>
@@ -38,7 +38,7 @@
 <text text-anchor="start" x="80" y="-55.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Engine</text>
 <text text-anchor="start" x="122" y="-55.1" font-family="Helvetica,sans-Serif" font-size="8.00">PostgreSQL RDS</text>
 <text text-anchor="start" x="80" y="-40.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Instance</text>
-<text text-anchor="start" x="122" y="-40.1" font-family="Helvetica,sans-Serif" font-size="8.00">${Token[TOKEN.387]}</text>
+<text text-anchor="start" x="122" y="-40.1" font-family="Helvetica,sans-Serif" font-size="8.00">${Token[TOKEN.408]}</text>
 <text text-anchor="start" x="80" y="-25.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">Multi&#45;AZ</text>
 <text text-anchor="start" x="122" y="-25.1" font-family="Helvetica,sans-Serif" font-size="8.00">No</text>
 <text text-anchor="start" x="80" y="-10.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">VPC</text>

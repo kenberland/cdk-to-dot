@@ -214,7 +214,7 @@ digraph NetworkArchitecture {
             redis_a [
                 label=<
                     <TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
-                        <TR><TD><B>Redis Cache</B></TD></TR>
+                        <TR><TD><B>Valkey Cache</B></TD></TR>
                         <TR><TD><FONT POINT-SIZE="8" COLOR="SUBTLE">10.0.0.100</FONT></TD></TR>
                         <TR><TD><FONT POINT-SIZE="7" COLOR="MUTED">ElastiCache node</FONT></TD></TR>
                     </TABLE>
@@ -282,7 +282,7 @@ digraph NetworkArchitecture {
             redis_b [
                 label=<
                     <TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1">
-                        <TR><TD><B>Redis Cache</B></TD></TR>
+                        <TR><TD><B>Valkey Cache</B></TD></TR>
                         <TR><TD><FONT POINT-SIZE="8" COLOR="SUBTLE">10.0.1.100</FONT></TD></TR>
                         <TR><TD><FONT POINT-SIZE="7" COLOR="MUTED">ElastiCache node</FONT></TD></TR>
                     </TABLE>

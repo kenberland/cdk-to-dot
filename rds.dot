@@ -40,7 +40,7 @@ digraph RDSArchitecture {
                 <TR><TD COLSPAN="2"><FONT POINT-SIZE="8" COLOR="SUBTLE">10.0.0.50</FONT></TD></TR>
                 <HR/>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Engine</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">postgres</FONT></TD></TR>
-                <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Instance</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">${Token[TOKEN.353]}</FONT></TD></TR>
+                <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Instance</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">${Token[TOKEN.374]}</FONT></TD></TR>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Storage</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">20 GB</FONT></TD></TR>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Multi-AZ</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">No</FONT></TD></TR>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">VPC</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">VPC-A</FONT></TD></TR>
@@ -59,7 +59,7 @@ digraph RDSArchitecture {
                 <TR><TD COLSPAN="2"><FONT POINT-SIZE="8" COLOR="SUBTLE">10.0.1.50</FONT></TD></TR>
                 <HR/>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Engine</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">PostgreSQL RDS</FONT></TD></TR>
-                <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Instance</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">${Token[TOKEN.387]}</FONT></TD></TR>
+                <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Instance</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">${Token[TOKEN.408]}</FONT></TD></TR>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">Multi-AZ</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">No</FONT></TD></TR>
                 <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="8" COLOR="MUTED">VPC</FONT></TD><TD ALIGN="LEFT"><FONT POINT-SIZE="8">VPC-A</FONT></TD></TR>
             </TABLE>

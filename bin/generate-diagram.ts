@@ -6,6 +6,7 @@ import { NetworkStack } from '../lib/network-stack';
 import { generateDot } from '../lib/diagram';
 import { generateRdsDot } from '../lib/rds-diagram';
 import { generateEc2Dot } from '../lib/ec2-diagram';
+import { generateElastiCacheDot } from '../lib/elasticache-diagram';
 
 const app = new App();
 const stack = new NetworkStack(app, 'NetworkStack', {
@@ -18,6 +19,7 @@ const diagrams: { name: string; generate: () => string }[] = [
   { name: 'network', generate: () => generateDot(stack) },
   { name: 'rds', generate: () => generateRdsDot(stack) },
   { name: 'ec2', generate: () => generateEc2Dot(stack) },
+  { name: 'elasticache', generate: () => generateElastiCacheDot(stack) },
 ];
 
 for (const { name, generate } of diagrams) {

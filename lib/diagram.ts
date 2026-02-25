@@ -11,6 +11,7 @@ import {
   Connection,
 } from './external';
 import { ServerFleet } from './compute';
+import { CacheNode } from './cache';
 import { getMeta, toNodeId, COLOR_SCHEMES } from './dot-helpers';
 
 // ── DOT Generator ────────────────────────────────────────────
@@ -60,6 +61,25 @@ export function generateDot(stack: Stack): string {
       }
     } else if (child instanceof ServerFleet) {
       // Treat ServerFleet like a Service for diagram purposes
+      let parent: Construct | undefined = child.node.scope as Construct;
+      while (parent && !(parent instanceof SubnetGroup) && !(parent instanceof ec2.Vpc)) {
+        parent = parent.node.scope as Construct | undefined;
+      }
+      if (parent) {
+        const key = parent.node.id;
+        if (!groupedServices.has(key)) groupedServices.set(key, []);
+        groupedServices.get(key)!.push(child);
+      }
+      let vpc: Construct | undefined = child.node.scope as Construct;
+      while (vpc && !(vpc instanceof ec2.Vpc)) {
+        vpc = vpc.node.scope as Construct | undefined;
+      }
+      if (vpc) {
+        const vpcKey = vpc.node.id;
+        if (!vpcAllServices.has(vpcKey)) vpcAllServices.set(vpcKey, []);
+        vpcAllServices.get(vpcKey)!.push(child);
+      }
+    } else if (child instanceof CacheNode) {
       let parent: Construct | undefined = child.node.scope as Construct;
       while (parent && !(parent instanceof SubnetGroup) && !(parent instanceof ec2.Vpc)) {
         parent = parent.node.scope as Construct | undefined;

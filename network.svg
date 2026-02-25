@@ -45,9 +45,9 @@
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_az_b</title>
-<path fill="#f0f0f0" stroke="black" stroke-dasharray="5,2" d="M240,-574C240,-574 804,-574 804,-574 810,-574 816,-580 816,-586 816,-586 816,-740 816,-740 816,-746 810,-752 804,-752 804,-752 240,-752 240,-752 234,-752 228,-746 228,-740 228,-740 228,-586 228,-586 228,-580 234,-574 240,-574"/>
-<text text-anchor="start" x="424" y="-738.7" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Subnet 10.0.1.0/24 (us&#45;east&#45;1b)</text>
-<text text-anchor="start" x="443.5" y="-726.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">254 usable hosts · 10.0.1.1–10.0.1.254</text>
+<path fill="#f0f0f0" stroke="black" stroke-dasharray="5,2" d="M240,-574C240,-574 807,-574 807,-574 813,-574 819,-580 819,-586 819,-586 819,-740 819,-740 819,-746 813,-752 807,-752 807,-752 240,-752 240,-752 234,-752 228,-746 228,-740 228,-740 228,-586 228,-586 228,-580 234,-574 240,-574"/>
+<text text-anchor="start" x="425.5" y="-738.7" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Subnet 10.0.1.0/24 (us&#45;east&#45;1b)</text>
+<text text-anchor="start" x="445" y="-726.1" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#888888">254 usable hosts · 10.0.1.1–10.0.1.254</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_vpc_b</title>
@@ -208,16 +208,16 @@
 <!-- redis_a -->
 <g id="node11" class="node">
 <title>redis_a</title>
-<path fill="white" stroke="black" d="M796,-438C796,-438 732,-438 732,-438 726,-438 720,-432 720,-426 720,-426 720,-408 720,-408 720,-402 726,-396 732,-396 732,-396 796,-396 796,-396 802,-396 808,-402 808,-408 808,-408 808,-426 808,-426 808,-432 802,-438 796,-438"/>
-<text text-anchor="start" x="729" y="-426" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00">Redis Cache</text>
+<path fill="white" stroke="black" d="M799,-438C799,-438 729,-438 729,-438 723,-438 717,-432 717,-426 717,-426 717,-408 717,-408 717,-402 723,-396 729,-396 729,-396 799,-396 799,-396 805,-396 811,-402 811,-408 811,-408 811,-426 811,-426 811,-432 805,-438 799,-438"/>
+<text text-anchor="start" x="726" y="-426" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00">Valkey Cache</text>
 <text text-anchor="start" x="742" y="-413.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#555555">10.0.0.100</text>
 <text text-anchor="start" x="732" y="-403.4" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#888888">ElastiCache node</text>
 </g>
 <!-- app_servers_a&#45;&gt;redis_a -->
 <g id="edge13" class="edge">
 <title>app_servers_a&#45;&gt;redis_a</title>
-<path fill="none" stroke="black" d="M578.02,-434.73C615.67,-431.12 669.72,-425.94 709.67,-422.11"/>
-<polygon fill="black" stroke="black" points="710.15,-425.58 719.77,-421.14 709.48,-418.61 710.15,-425.58"/>
+<path fill="none" stroke="black" d="M578.02,-434.73C614.72,-431.21 666.98,-426.2 706.59,-422.41"/>
+<polygon fill="black" stroke="black" points="707.01,-425.88 716.63,-421.44 706.35,-418.91 707.01,-425.88"/>
 <text text-anchor="middle" x="641" y="-433.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#555555">cache r/w</text>
 </g>
 <!-- database_primary -->
@@ -277,16 +277,16 @@
 <!-- redis_b -->
 <g id="node15" class="node">
 <title>redis_b</title>
-<path fill="white" stroke="black" d="M796,-651C796,-651 732,-651 732,-651 726,-651 720,-645 720,-639 720,-639 720,-621 720,-621 720,-615 726,-609 732,-609 732,-609 796,-609 796,-609 802,-609 808,-615 808,-621 808,-621 808,-639 808,-639 808,-645 802,-651 796,-651"/>
-<text text-anchor="start" x="729" y="-639" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00">Redis Cache</text>
+<path fill="white" stroke="black" d="M799,-651C799,-651 729,-651 729,-651 723,-651 717,-645 717,-639 717,-639 717,-621 717,-621 717,-615 723,-609 729,-609 729,-609 799,-609 799,-609 805,-609 811,-615 811,-621 811,-621 811,-639 811,-639 811,-645 805,-651 799,-651"/>
+<text text-anchor="start" x="726" y="-639" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="10.00">Valkey Cache</text>
 <text text-anchor="start" x="742" y="-626.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#555555">10.0.1.100</text>
 <text text-anchor="start" x="732" y="-616.4" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#888888">ElastiCache node</text>
 </g>
 <!-- app_servers_b&#45;&gt;redis_b -->
 <g id="edge17" class="edge">
 <title>app_servers_b&#45;&gt;redis_b</title>
-<path fill="none" stroke="black" d="M578.02,-630C615.67,-630 669.72,-630 709.67,-630"/>
-<polygon fill="black" stroke="black" points="709.77,-633.5 719.77,-630 709.77,-626.5 709.77,-633.5"/>
+<path fill="none" stroke="black" d="M578.02,-630C614.72,-630 666.98,-630 706.59,-630"/>
+<polygon fill="black" stroke="black" points="706.63,-633.5 716.63,-630 706.63,-626.5 706.63,-633.5"/>
 <text text-anchor="middle" x="641" y="-632.6" font-family="Helvetica,sans-Serif" font-size="8.00" fill="#555555">cache r/w</text>
 </g>
 <!-- _anchor_b -->

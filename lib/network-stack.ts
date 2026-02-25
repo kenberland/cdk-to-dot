@@ -12,6 +12,7 @@ import {
 import { subnetMeta } from './cidr';
 import { Database } from './database';
 import { ServerFleet } from './compute';
+import { CacheNode } from './cache';
 
 export class NetworkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -166,10 +167,12 @@ export class NetworkStack extends Stack {
       ],
     });
 
-    const redisA = new Service(azA, 'RedisA', {
-      label: 'Redis Cache',
+    const redisA = new CacheNode(azA, 'RedisA', {
+      vpc: vpcA,
+      label: 'Valkey Cache',
       ip: '10.0.0.100',
       description: 'ElastiCache node',
+      cacheNodeType: 'cache.t3.micro',
     });
 
     const azBMeta = subnetMeta(VPC_A_AZ_B_CIDR);
@@ -209,10 +212,12 @@ export class NetworkStack extends Stack {
       ],
     });
 
-    const redisB = new Service(azB, 'RedisB', {
-      label: 'Redis Cache',
+    const redisB = new CacheNode(azB, 'RedisB', {
+      vpc: vpcA,
+      label: 'Valkey Cache',
       ip: '10.0.1.100',
       description: 'ElastiCache node',
+      cacheNodeType: 'cache.t3.micro',
     });
 
     // ── Database (RDS PostgreSQL) ────────────────────────────
