@@ -3,15 +3,19 @@
   "version": "1.0.0",
   "scripts": {
     "diagram": "ts-node bin/generate-diagram.ts",
-    "render": "bin/render"
+    "render": "bin/render",
+    "test": "jest"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.170.0",
     "constructs": "^10.4.2"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.7.0"
   }
 }
