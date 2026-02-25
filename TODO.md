@@ -1,19 +1,57 @@
 # TODO
 
-## Replace `Service` placeholders with real CDK constructs
+## Replace remaining `Service` constructs with real AWS resources
 
-The `Service` class in `lib/external.ts` is a lightweight `Construct` subclass
-that only holds diagram metadata — it doesn't map to any AWS resource.
+Several constructs in `network-stack.ts` still use the placeholder `Service`
+class from `lib/external.ts`. Each should be replaced with the corresponding
+CDK construct and get a focused diagram.
 
-Consider replacing these with real CDK constructs (`ec2.Instance`, etc.) so the
-stack is deployable, not just a diagram source. The diagram generator would need
-`instanceof ec2.Instance` checks alongside the existing `instanceof Service`.
+### VPC-A
 
-Trade-offs:
-- Real constructs require valid props (AMI, instance type, VPC placement) even
-  though we never synthesize today.
-- Keeps the CDK definition honest — the diagram reflects actual infrastructure,
-  not just labels.
-- Some services (e.g. Redis/ElastiCache, RDS) would use different construct
-  classes, so the diagram generator needs a wider set of instanceof checks or a
-  shared metadata convention.
+- [ ] **ELB** → `elbv2.ApplicationLoadBalancer`
+  - Currently `Service(vpcA, 'Elb', ...)`. Needs target groups, listeners,
+    and security group configuration. Add an ELB/ALB focused diagram.
+
+### VPC-B (Internal / Tooling)
+
+- [ ] **CI/CD Runners** → `ServerFleet` or dedicated construct
+  - 4 instances (Jenkins + GH Actions). Could reuse `ServerFleet` from
+    `lib/compute.ts`.
+
+- [ ] **Artifacts** → `s3.Bucket`
+  - S3 object store at 172.16.1.100. Needs bucket policy, encryption config.
+    Add an S3 focused diagram.
+
+- [ ] **Monitoring** → `ServerFleet` or dedicated construct
+  - Prometheus + Grafana at 172.16.1.50. Could reuse `ServerFleet`.
+
+- [ ] **Log Aggregator** → `ServerFleet` or OpenSearch
+  - ELK Stack at 172.16.1.200. Could be `ServerFleet` or
+    `opensearch.Domain` if switching to AWS-managed.
+
+## Replace remaining custom constructs
+
+- [ ] **NatGatewayNode** → `ec2.CfnNatGateway` + `ec2.CfnEIP`
+  - Currently a metadata-only construct. Real NAT gateways need an EIP and
+    public subnet placement.
+
+- [ ] **Firewall SecurityGroup** → use real `addIngressRule` calls
+  - The SG exists as a real `ec2.SecurityGroup` but the firewall rules are
+    hardcoded in `diagram:rules` metadata. The rules should come from actual
+    ingress rules on the construct.
+
+## Constructs that should stay as-is
+
+- **ExternalService** (API A, API B) — represents third-party services outside
+  AWS. No real resource to map to.
+- **InternetNode** — diagram-only representation of the internet.
+- **SubnetGroup** — diagram-only AZ grouping. Real subnets are created by
+  `ec2.Vpc`.
+
+## Housekeeping
+
+- [ ] Add `test/` to `tsconfig.json` includes so `tsc` compiles tests
+- [ ] Consider extracting the repeated construct-walker pattern in `diagram.ts`
+      into a shared collector function
+- [ ] Consider auto-generating `index.html` from the diagram registry instead
+      of maintaining it manually
