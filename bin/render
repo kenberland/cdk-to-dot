@@ -132,48 +132,60 @@ def main():
         sys.exit(1)
 
     theme = THEMES[args.theme]
-    out_file = args.output or os.path.join(PROJECT_DIR, "network.svg")
 
-    with tempfile.TemporaryDirectory() as tmp:
-        # Write themed cloud SVG
-        cloud_path = os.path.join(tmp, "cloud.svg")
-        with open(cloud_path, "w") as f:
-            f.write(CLOUD_SVG.format(cloud_stroke=theme["cloud_stroke"]))
+    # Discover all .dot files, or use explicit output for single file
+    import glob
+    import base64
 
-        # Read and theme the dot source
-        dot_path = os.path.join(PROJECT_DIR, "network.dot")
-        with open(dot_path) as f:
-            dot_src = f.read()
+    dot_files = sorted(glob.glob(os.path.join(PROJECT_DIR, "*.dot")))
+    if not dot_files:
+        print("Error: no .dot files found.", file=sys.stderr)
+        sys.exit(1)
 
-        dot_src = dot_src.replace('"CLOUD_IMAGE"', f'"{cloud_path}"')
-        dot_src = apply_theme(dot_src, theme)
+    if args.output and len(dot_files) > 1:
+        print("Warning: -o ignored when rendering multiple diagrams.", file=sys.stderr)
 
-        themed_dot = os.path.join(tmp, "network.dot")
-        with open(themed_dot, "w") as f:
-            f.write(dot_src)
+    for dot_path in dot_files:
+        name = os.path.splitext(os.path.basename(dot_path))[0]
+        out_file = args.output if (args.output and len(dot_files) == 1) else os.path.join(PROJECT_DIR, f"{name}.svg")
 
-        result = subprocess.run(
-            ["dot", "-Tsvg", themed_dot, "-o", out_file],
-            capture_output=True, text=True,
-        )
-        if result.stderr:
-            print(result.stderr, file=sys.stderr, end="")
-        if result.returncode != 0:
-            sys.exit(result.returncode)
+        with tempfile.TemporaryDirectory() as tmp:
+            # Write themed cloud SVG
+            cloud_path = os.path.join(tmp, "cloud.svg")
+            with open(cloud_path, "w") as f:
+                f.write(CLOUD_SVG.format(cloud_stroke=theme["cloud_stroke"]))
 
-        # Graphviz SVG output references the cloud image by path.
-        # Inline it as a data URI so the output is self-contained.
-        import base64
-        with open(cloud_path) as f:
-            cloud_data = f.read()
-        data_uri = "data:image/svg+xml;base64," + base64.b64encode(cloud_data.encode()).decode()
-        with open(out_file) as f:
-            svg_out = f.read()
-        svg_out = svg_out.replace(cloud_path, data_uri)
-        with open(out_file, "w") as f:
-            f.write(svg_out)
+            # Read and theme the dot source
+            with open(dot_path) as f:
+                dot_src = f.read()
 
-    print(f"Rendered ({args.theme}) → {out_file}")
+            dot_src = dot_src.replace('"CLOUD_IMAGE"', f'"{cloud_path}"')
+            dot_src = apply_theme(dot_src, theme)
+
+            themed_dot = os.path.join(tmp, f"{name}.dot")
+            with open(themed_dot, "w") as f:
+                f.write(dot_src)
+
+            result = subprocess.run(
+                ["dot", "-Tsvg", themed_dot, "-o", out_file],
+                capture_output=True, text=True,
+            )
+            if result.stderr:
+                print(result.stderr, file=sys.stderr, end="")
+            if result.returncode != 0:
+                sys.exit(result.returncode)
+
+            # Inline cloud image as data URI for self-contained SVG
+            with open(cloud_path) as f:
+                cloud_data = f.read()
+            data_uri = "data:image/svg+xml;base64," + base64.b64encode(cloud_data.encode()).decode()
+            with open(out_file) as f:
+                svg_out = f.read()
+            svg_out = svg_out.replace(cloud_path, data_uri)
+            with open(out_file, "w") as f:
+                f.write(svg_out)
+
+        print(f"Rendered ({args.theme}) → {out_file}")
 
 
 if __name__ == "__main__":

@@ -10,24 +10,7 @@ import {
   NatGatewayNode,
   Connection,
 } from './external';
-
-// ── Helpers ──────────────────────────────────────────────────
-
-function getMeta(c: Construct, key: string): string | undefined {
-  const entry = c.node.metadata.find(e => e.type === key);
-  return entry?.data as string | undefined;
-}
-
-function toNodeId(constructId: string): string {
-  return constructId.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-}
-
-const COLOR_SCHEMES: Record<string, {
-  main: string; alt: string; nodeFill: string; natFill: string;
-}> = {
-  BLUE: { main: 'BLUE', alt: 'BLUE_ALT', nodeFill: 'NODE_BLUE_FILL', natFill: 'BLUE_ALT_FILL' },
-  GREEN: { main: 'GREEN', alt: 'GREEN_ALT', nodeFill: 'NODE_GREEN_FILL', natFill: 'GREEN_FILL' },
-};
+import { getMeta, toNodeId, COLOR_SCHEMES } from './dot-helpers';
 
 // ── DOT Generator ────────────────────────────────────────────
 
@@ -61,7 +44,7 @@ export function generateDot(stack: Stack): string {
       externals.push(child);
     } else if (child instanceof NatGatewayNode) {
       nats.push(child);
-    } else if (child instanceof ec2.SecurityGroup) {
+    } else if (child instanceof ec2.SecurityGroup && getMeta(child, 'diagram:label')) {
       securityGroups.push(child);
     } else if (child instanceof SubnetGroup) {
       // Find parent VPC
