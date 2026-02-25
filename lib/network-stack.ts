@@ -11,6 +11,7 @@ import {
 } from './external';
 import { subnetMeta } from './cidr';
 import { Database } from './database';
+import { ServerFleet } from './compute';
 
 export class NetworkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -134,16 +135,35 @@ export class NetworkStack extends Stack {
       subtitle: azAMeta.subtitle,
     });
 
-    const webServersA = new Service(azA, 'WebServersA', {
+    const webServersA = new ServerFleet({
+      vpc: vpcA,
+      scope: azA,
+      id: 'WebServersA',
+      count: 3,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
       label: 'Web Servers',
       ip: '10.0.0.10–12 (×3)',
       description: 'nginx + node.js',
+      connections: [
+        { target: 'AppServersA', label: 'HTTP/gRPC', color: 'EDGE' },
+      ],
     });
 
-    const appServersA = new Service(azA, 'AppServersA', {
+    const appServersA = new ServerFleet({
+      vpc: vpcA,
+      scope: azA,
+      id: 'AppServersA',
+      count: 2,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.LARGE),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
       label: 'App Servers',
       ip: '10.0.0.20–21 (×2)',
       description: 'Java / Spring Boot',
+      connections: [
+        { target: 'DatabasePrimary', label: 'SQL', color: 'EDGE' },
+        { target: 'RedisA', label: 'cache r/w', color: 'EDGE' },
+      ],
     });
 
     const redisA = new Service(azA, 'RedisA', {
@@ -158,16 +178,35 @@ export class NetworkStack extends Stack {
       subtitle: azBMeta.subtitle,
     });
 
-    const webServersB = new Service(azB, 'WebServersB', {
+    const webServersB = new ServerFleet({
+      vpc: vpcA,
+      scope: azB,
+      id: 'WebServersB',
+      count: 3,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
       label: 'Web Servers',
       ip: '10.0.1.10–12 (×3)',
       description: 'nginx + node.js',
+      connections: [
+        { target: 'AppServersB', label: 'HTTP/gRPC', color: 'EDGE' },
+      ],
     });
 
-    const appServersB = new Service(azB, 'AppServersB', {
+    const appServersB = new ServerFleet({
+      vpc: vpcA,
+      scope: azB,
+      id: 'AppServersB',
+      count: 2,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.LARGE),
+      machineImage: ec2.MachineImage.latestAmazonLinux2023(),
       label: 'App Servers',
       ip: '10.0.1.20–21 (×2)',
       description: 'Java / Spring Boot',
+      connections: [
+        { target: 'DatabasePrimary', label: 'SQL', color: 'EDGE' },
+        { target: 'RedisB', label: 'cache r/w', color: 'EDGE' },
+      ],
     });
 
     const redisB = new Service(azB, 'RedisB', {
@@ -239,25 +278,7 @@ export class NetworkStack extends Stack {
       },
     ]);
 
-    // ── VPC-A internal flows (per-AZ) ────────────────────
 
-    addConnections(webServersA, [
-      { target: 'AppServersA', label: 'HTTP/gRPC', color: 'EDGE' },
-    ]);
-
-    addConnections(appServersA, [
-      { target: 'DatabasePrimary', label: 'SQL', color: 'EDGE' },
-      { target: 'RedisA', label: 'cache r/w', color: 'EDGE' },
-    ]);
-
-    addConnections(webServersB, [
-      { target: 'AppServersB', label: 'HTTP/gRPC', color: 'EDGE' },
-    ]);
-
-    addConnections(appServersB, [
-      { target: 'DatabasePrimary', label: 'SQL', color: 'EDGE' },
-      { target: 'RedisB', label: 'cache r/w', color: 'EDGE' },
-    ]);
 
 
 

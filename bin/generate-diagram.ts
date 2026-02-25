@@ -5,6 +5,7 @@ import { App } from 'aws-cdk-lib';
 import { NetworkStack } from '../lib/network-stack';
 import { generateDot } from '../lib/diagram';
 import { generateRdsDot } from '../lib/rds-diagram';
+import { generateEc2Dot } from '../lib/ec2-diagram';
 
 const app = new App();
 const stack = new NetworkStack(app, 'NetworkStack', {
@@ -16,6 +17,7 @@ const outDir = path.resolve(__dirname, '..');
 const diagrams: { name: string; generate: () => string }[] = [
   { name: 'network', generate: () => generateDot(stack) },
   { name: 'rds', generate: () => generateRdsDot(stack) },
+  { name: 'ec2', generate: () => generateEc2Dot(stack) },
 ];
 
 for (const { name, generate } of diagrams) {
