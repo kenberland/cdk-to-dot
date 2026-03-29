@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "diagram": "ts-node bin/generate-diagram.ts",
+    "diagram:cf": "ts-node bin/generate-cf-diagram.ts",
     "render": "bin/render",
     "test": "jest --forceExit"
   },
